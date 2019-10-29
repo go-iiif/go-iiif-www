@@ -4,7 +4,9 @@ A simple web application for testing go-iiif related tools.
 
 ## Important
 
-This is work in progress. It is not properly documented yet. It is also, as of this writing, principally a debugging tool rather than a full-fledged application.
+This is work in progress. It is not properly documented yet. It is also, as of this writing, not a full-fledged application but rather a debugging tool for testing the output the of the `go-iiif` and `go-iiif-vips`. For example:
+
+![](docs/images/tile-seed-bunk.png)
 
 ## Tools
 
