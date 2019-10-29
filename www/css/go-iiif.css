@@ -1,0 +1,63 @@
+body {
+    margin:2em;
+    font-family: serif;
+    font-size: 1.2em;
+    line-height: 1.45em;
+}
+
+a {
+    font-weight: 700;
+    text-decoration: none;
+    color:  #c54b8c;
+}
+
+.hey-look {
+    color: #f75394;
+}
+
+#container {
+    width:600px !important;
+}
+
+#map {
+    border: solid thin;
+    width:600px !important;
+    height:600px !important;
+}
+
+#image {
+    float:right;
+    margin-top:.5em;
+    border-radius: 0;
+    border: solid thin;
+    font-size:1.5em;
+}
+
+pre {
+    font-size:small !important;
+    line-height: 1.2em !important;
+    color: darkslategrey;
+}
+
+#footer {
+    margin-top:6em;
+    text-align:right;
+}
+
+@media (max-width: 400px) {
+
+    #container {
+	width: 100% !important;
+    }
+    
+    #map {
+	width: 100% !important;
+	height: 300px !important;
+    }
+
+    pre {
+	max-width: 300px !important;
+	x-overflow: scroll;
+	white-space:pre-wrap;
+    }
+}
