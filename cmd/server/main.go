@@ -14,8 +14,6 @@ func main() {
 	port := flag.Int("port", 8080, "Port to listen on")
 
 	tiles_root := flag.String("tiles-root", "", "")
-	// tiles_url := flag.String("tiles-url", "/tiles", "")
-
 	www_root := flag.String("www-root", "", "")
 
 	flag.Parse()
@@ -35,13 +33,13 @@ func main() {
 	tiles_dir := http.Dir(tiles_path)
 	tiles_handler := http.FileServer(tiles_dir)
 	tiles_handler = http.StripPrefix("/tiles/", tiles_handler)
-	
+
 	www_dir := http.Dir(www_path)
 	www_handler := http.FileServer(www_dir)
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/tiles/", tiles_handler)	
+	mux.Handle("/tiles/", tiles_handler)
 	mux.Handle("/", www_handler)
 
 	address := fmt.Sprintf("%s:%d", *host, *port)
