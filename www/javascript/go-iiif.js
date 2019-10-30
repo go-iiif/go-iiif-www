@@ -92,7 +92,32 @@ window.addEventListener('load', function(e){
 
     };
 
-    display('spanking.jpg');
+    function onload () {
+	
+	var data = JSON.parse(this.responseText);
+	var count = data.length;
+	console.log(data);
+
+	var menu = document.getElementById("images");
+	menu.innerHTML = "";
+	
+	for (var i=0; i < count; i++){
+	    var image_name = data[i];
+
+	    var option = document.createElement("option");
+	    option.appendChild(document.createTextNode(image_name));
+
+	    menu.appendChild(option);
+	}
+
+	display(data[0]);
+    };
+
+    var req = new XMLHttpRequest();
+    
+    req.addEventListener("load", onload);
+    req.open("GET", "/images");
+    req.send();
     
 });
 		       
