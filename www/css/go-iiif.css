@@ -5,6 +5,10 @@ body {
     line-height: 1.45em;
 }
 
+.leaflet-tile {
+	border: 1px solid red;
+}
+
 a {
     font-weight: 700;
     text-decoration: none;

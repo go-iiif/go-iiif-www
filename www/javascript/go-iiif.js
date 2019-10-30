@@ -2,6 +2,7 @@ window.addEventListener('load', function(e){
 
     var id = '184512_5f7f47e5b3c66207_x.jpg';	// disk
     var id = 'spanking.jpg';
+    // var id = 'matchsafe.jpg';    
     
 	/*
 	var qs = window.location.search;
