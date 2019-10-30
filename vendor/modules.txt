@@ -1,0 +1,4 @@
+# github.com/whosonfirst/go-whosonfirst-crawl v0.2.0
+github.com/whosonfirst/go-whosonfirst-crawl
+# github.com/whosonfirst/walk v0.0.0-20160803014805-c0a349674b73
+github.com/whosonfirst/walk

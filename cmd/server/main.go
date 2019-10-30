@@ -6,7 +6,65 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"os"
+	"github.com/whosonfirst/go-whosonfirst-crawl"
+	"encoding/json"
+	"sync"
+	"sort"
 )
+
+func ImagesHandler(tile_root string) (http.HandlerFunc, error) {
+
+	mu := new(sync.RWMutex)
+	
+	fn := func(rsp http.ResponseWriter, req *http.Request) {
+
+		images := make([]string, 0)
+		
+		cb := func(path string, info os.FileInfo) error {
+		
+			if info.IsDir() {
+				return nil
+			}
+			
+			fname := filepath.Base(path)
+
+			if fname != "info.json" {
+				return nil
+			}
+
+			root := filepath.Dir(path)
+			image := filepath.Base(root)
+
+			mu.Lock()
+			defer mu.Unlock()
+
+			images = append(images, image)
+			return nil
+		}
+		
+		cr := crawl.NewCrawler(tile_root)
+		err := cr.Crawl(cb)
+
+		if err != nil {
+			http.Error(rsp, err.Error(), http.StatusInternalServerError)
+			return 
+		}
+
+		sort.Strings(images)
+
+		enc, err := json.Marshal(images)
+
+		if err != nil {
+			http.Error(rsp, err.Error(), http.StatusInternalServerError)
+			return 
+		}
+
+		rsp.Write(enc)
+	}
+
+	return http.HandlerFunc(fn), nil	
+}
 
 func main() {
 
@@ -37,8 +95,15 @@ func main() {
 	www_dir := http.Dir(www_path)
 	www_handler := http.FileServer(www_dir)
 
+	images_handler, err := ImagesHandler(tiles_path)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	
 	mux := http.NewServeMux()
 
+	mux.Handle("/images/", images_handler)	
 	mux.Handle("/tiles/", tiles_handler)
 	mux.Handle("/", www_handler)
 
