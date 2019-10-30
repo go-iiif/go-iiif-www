@@ -30,6 +30,8 @@ module.exports = function leafletImage(map, callback) {
     // layers are drawn in the same order as they are composed in the DOM:
     // tiles, paths, and then markers
     map.eachLayer(drawTileLayer);
+    map.eachLayer(drawEsriDynamicLayer);
+    
     if (map._pathRoot) {
         layerQueue.defer(handlePathRoot, map._pathRoot);
     } else if (map._panes) {
@@ -47,6 +49,14 @@ module.exports = function leafletImage(map, callback) {
     function drawMarkerLayer(l) {
         if (l instanceof L.Marker && l.options.icon instanceof L.Icon) {
             layerQueue.defer(handleMarkerLayer, l);
+        }
+    }
+    
+    function drawEsriDynamicLayer(l) {
+        if (!L.esri) return;
+       
+        if (l instanceof L.esri.DynamicMapLayer) {                       
+            layerQueue.defer(handleEsriDymamicLayer, l);
         }
     }
 
@@ -74,7 +84,6 @@ module.exports = function leafletImage(map, callback) {
 
         var ctx = canvas.getContext('2d'),
             bounds = map.getPixelBounds(),
-            origin = map.getPixelOrigin(),
             zoom = map.getZoom(),
             tileSize = layer.options.tileSize;
 
@@ -106,9 +115,9 @@ module.exports = function leafletImage(map, callback) {
                 layer._adjustTilePoint(tilePoint);
             }
 
-            var tilePos = layer._getTilePos(originalTilePoint)
-                .subtract(bounds.min)
-                .add(origin);
+            var tilePos = originalTilePoint
+                .scaleBy(new L.Point(tileSize, tileSize))
+                .subtract(bounds.min);
 
             if (tilePoint.y >= 0) {
                 if (isCanvasLayer) {
@@ -219,6 +228,25 @@ module.exports = function leafletImage(map, callback) {
         im.src = url;
 
         if (isBase64) im.onload();
+    }
+    
+    function handleEsriDymamicLayer(dynamicLayer, callback) {
+        var canvas = document.createElement('canvas');
+        canvas.width = dimensions.x;
+        canvas.height = dimensions.y;
+    
+        var ctx = canvas.getContext('2d');
+    
+        var im = new Image();
+        im.crossOrigin = '';
+        im.src = addCacheString(dynamicLayer._currentImage._image.src);
+    
+        im.onload = function() {
+            ctx.drawImage(im, 0, 0);
+            callback(null, {
+                canvas: canvas
+            });
+        };
     }
 
     function addCacheString(url) {
