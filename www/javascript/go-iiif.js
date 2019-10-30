@@ -1,5 +1,21 @@
 window.addEventListener('load', function(e){
+
+    var display_el = document.getElementById("display");
+    
+    display_el.onclick = function(e){
+
+	var id_el = document.getElementById("id");
+	var id = id_el.value;
+
+	if (id == ""){
+	    alert("Nothing to show.");
+	    return false;
+	}
 	
+	display(id);
+	return false;
+    };
+    
     var map = L.map('map', {
 	center: [0, 0],
 	crs: L.CRS.Simple,
