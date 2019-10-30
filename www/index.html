@@ -15,27 +15,20 @@
   <link rel="stylesheet" type="text/css" href="css/go-iiif.css" />
 </head>
 <body>
-  
-  <div id="container" style="float:right;margin-left:3em;">
-  <div id="map"></div>
-  <button id="image" title="this button will take a picture of whatever you see in the slippy map's viewport">📷</button>
+    
+    <div id="container">
+      <button id="image" title="this button will take a picture of whatever you see in the slippy map's viewport">📷</button>	
+      <div id="map"></div>           
   </div>
 
-    <div>
-    <h2 class="hey-look">go-iiif</h2>
+  <div id="controls">
 
-    <p><span class="hey-look">go-iiif</span> ...</p>
-
-    <form>
-	<select id="images">
-	</select>
-	<button type="submit" id="display">Display</button>
-    </form>
-
-    
-    <p>If you <span class="hey-look">click</span> the handy 📷  button underneath the slippymap it will create a <span class="hey-look">static image</span> of whatever is currently in the viewport.</p>
-
-    
+      <form id="chooser">
+	  <select id="images">
+	  </select>
+      </form>
+  </div>
+  
     <div id="footer">
 	<p><small><span class="hey-look">go-iiif</span> is a thing by <a href="http://www.aaronland.info/">aaron straup cope</a>.</small></p>
     </div>

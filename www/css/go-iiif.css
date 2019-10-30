@@ -9,6 +9,10 @@ body {
 	border: 1px solid red;
 }
 
+.leaflet-control-attribution {
+	display: none;
+}
+
 a {
     font-weight: 700;
     text-decoration: none;
@@ -19,22 +23,30 @@ a {
     color: #f75394;
 }
 
+#chooser {
+	display:block;
+	text-align:center;
+	width: 100%;
+}
+
 #container {
     width:600px !important;
 }
 
 #map {
     border: solid thin;
-    width:600px !important;
+    width:90vw;
     height:600px !important;
 }
 
 #image {
-    float:right;
-    margin-top:.5em;
-    border-radius: 0;
-    border: solid thin;
-    font-size:1.5em;
+	border-radius: 0;
+	border: solid thin;
+	font-size:1.5em;
+	position: fixed;
+	top: 6vh;
+	right: 7.5vw;
+	z-index:5000;
 }
 
 pre {

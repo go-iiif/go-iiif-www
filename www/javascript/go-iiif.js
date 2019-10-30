@@ -1,17 +1,12 @@
 window.addEventListener('load', function(e){
 
-    var display_el = document.getElementById("display");
+    var images_el = document.getElementById("images");
     
-    display_el.onclick = function(e){
+    images_el.onchange = function(e){
 
-	var id_el = document.getElementById("id");
-	var id = id_el.value;
+	var el = e.target;
+	var id = el.value;
 
-	if (id == ""){
-	    alert("Nothing to show.");
-	    return false;
-	}
-	
 	display(id);
 	return false;
     };
@@ -27,7 +22,7 @@ window.addEventListener('load', function(e){
     
     var display = function(id){
 	
-	var info = location + 'tiles/' + id + '/info.json';
+	var info = '/tiles/' + id + '/info.json';
 
 	var opts = {
 		'quality': 'color',
@@ -46,7 +41,7 @@ window.addEventListener('load', function(e){
 		var b = document.getElementById("image");
 		b.setAttribute("disabled", "disabled");
 
-		b.innerHTML = '<img src="images/party-parrot.gif" />';
+		b.innerHTML = '<img src="/images/party-parrot.gif" />';
 
 		leafletImage(map, function(err, canvas) {
 			
@@ -120,6 +115,3 @@ window.addEventListener('load', function(e){
     req.send();
     
 });
-		       
-		       	
-
