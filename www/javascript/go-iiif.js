@@ -111,7 +111,7 @@ window.addEventListener('load', function(e){
     var req = new XMLHttpRequest();
     
     req.addEventListener("load", onload);
-    req.open("GET", "/images");
+    req.open("GET", "/catalog");
     req.send();
     
 });

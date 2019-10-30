@@ -13,7 +13,7 @@ import (
 	"sort"
 )
 
-func ImagesHandler(tile_root string) (http.HandlerFunc, error) {
+func CatalogHandler(tile_root string) (http.HandlerFunc, error) {
 
 	mu := new(sync.RWMutex)
 	
@@ -95,7 +95,7 @@ func main() {
 	www_dir := http.Dir(www_path)
 	www_handler := http.FileServer(www_dir)
 
-	images_handler, err := ImagesHandler(tiles_path)
+	catalog_handler, err := CatalogHandler(tiles_path)
 
 	if err != nil {
 		log.Fatal(err)
@@ -103,7 +103,7 @@ func main() {
 	
 	mux := http.NewServeMux()
 
-	mux.Handle("/images/", images_handler)	
+	mux.Handle("/catalog/", catalog_handler)	
 	mux.Handle("/tiles/", tiles_handler)
 	mux.Handle("/", www_handler)
 
