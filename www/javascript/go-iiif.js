@@ -1,43 +1,28 @@
 window.addEventListener('load', function(e){
+	
+    var map = L.map('map', {
+	center: [0, 0],
+	crs: L.CRS.Simple,
+	zoom: 1,
+	minZoom: 1,
+    });
 
-    var id = '184512_5f7f47e5b3c66207_x.jpg';	// disk
-    var id = 'spanking.jpg';
-    // var id = 'matchsafe.jpg';    
+    var iiif_layer;
     
-	/*
-	var qs = window.location.search;
-	qs = qs.substring(1);
+    var display = function(id){
 	
-	var params = {};
-	var queries = qs.split("&amp;");
-	var count = queries.length;
-	
-	for ( var i = 0; i < count; i++ ) {
-		temp = queries[i].split('=');
-		params[temp[0]] = temp[1];
-	}   
-	
-	if (params['id']){
-		id = params['id'];
-	}			 
-	*/
-	
-	var map = L.map('map', {
-		center: [0, 0],
-		crs: L.CRS.Simple,
-		zoom: 1,
-		minZoom: 1,
-	});
-
 	var info = location + 'tiles/' + id + '/info.json';
 
 	var opts = {
 		'quality': 'color',
 	};
 
-	var layer = L.tileLayer.iiif(info, opts);
+	if (iiif_layer){
+	    map.removeLayer(iiif_layer);
+	}
 	
-	map.addLayer(layer);    
+	iiif_layer = L.tileLayer.iiif(info, opts);
+	map.addLayer(iiif_layer);    
 
 	var i = document.getElementById("image");
 	i.onclick = function(){
@@ -89,6 +74,10 @@ window.addEventListener('load', function(e){
 
 	};
 
+    };
+
+    display('spanking.jpg');
+    
 });
 		       
 		       	
