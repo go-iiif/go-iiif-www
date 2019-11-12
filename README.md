@@ -4,7 +4,7 @@ A simple web application for testing go-iiif related tools.
 
 ## Important
 
-This is work in progress. It is not properly documented yet. It is also, as of this writing, not a full-fledged application but rather a debugging tool for testing the output the of the [go-iiif](https://github.com/go-iiif/go-iiif) and [go-iiif-vips](https://github.com/go-iiif/go-iiif-vips) tile-seeding. For example:
+This is work in progress. It is not properly documented yet. It is also, as of this writing, not a full-fledged application but rather a set of debuggings tool for testing the output the of the [go-iiif](https://github.com/go-iiif/go-iiif) and [go-iiif-vips](https://github.com/go-iiif/go-iiif-vips) tile-seeding. For example:
 
 ![](docs/images/tile-seed-bunk.png)
 
@@ -22,3 +22,4 @@ go run cmd/tile-server/main.go -tiles-root /path/to/go-iiif-vips/docker/cache/ -
 ## See also
 
 * https://github.com/go-iiif/go-iiif
+* https://github.com/go-iiif/go-iiif-vips
