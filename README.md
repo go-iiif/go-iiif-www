@@ -8,7 +8,11 @@ This is work in progress. It is not properly documented yet. It is also, as of t
 
 ![](docs/images/tile-seed-bunk.png)
 
-Clearly, something is wrong here.
+Clearly, something is wrong here. This is much better:
+
+![](docs/images/iiif-boac.png)
+
+_Note that the red borders on the tiles are deliberate and set using CSS._
 
 ## Tools
 
