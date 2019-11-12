@@ -8,12 +8,14 @@ This is work in progress. It is not properly documented yet. It is also, as of t
 
 ![](docs/images/tile-seed-bunk.png)
 
+Clearly, something is wrong here.
+
 ## Tools
 
-### server
+### tiles-server
 
 ```
-go run cmd/server/main.go -tiles-root /path/to/go-iiif-vips/docker/cache/ -www-root ./www/
+go run cmd/tile-server/main.go -tiles-root /path/to/go-iiif-vips/docker/cache/ -www-root ./www/
 2019/10/29 12:46:06 listening on localhost:8080
 ```
 

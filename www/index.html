@@ -1,37 +1,38 @@
 <!DOCTYPE html>
-<head>
-  <title>go-iiif</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-
-  <script src="javascript/leaflet.1.5.1.js"></script>
-  <script src="javascript/leaflet-iiif.2.0.1.js"></script>
-  <script src="javascript/leaflet-image.0.4.0.js"></script>
-  <script src="javascript/FileSaver.min.js"></script>
-
-  <script type="text/javascript" src="javascript/go-iiif.js"></script>
-
-  <link rel="stylesheet" type="text/css" href="css/leaflet.1.5.1.css" />  
-  <link rel="stylesheet" type="text/css" href="css/go-iiif.css" />
-</head>
-<body>
-    
-    <div id="container">
-      <button id="image" title="this button will take a picture of whatever you see in the slippy map's viewport">📷</button>	
-      <div id="map"></div>           
-  </div>
-
-  <div id="controls">
-
-      <form id="chooser">
-	  <select id="images">
-	  </select>
-      </form>
-  </div>
-  
-    <div id="footer">
-	<p><small><span class="hey-look">go-iiif</span> is a thing by <a href="http://www.aaronland.info/">aaron straup cope</a>.</small></p>
-    </div>
-    
-</body>
+<html>
+    <head>
+	<title>go-iiif</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<script src="javascript/leaflet.1.5.1.js"></script>
+	<script src="javascript/leaflet-iiif.2.0.1.js"></script>
+	<script src="javascript/leaflet-image.0.4.0.js"></script>
+	<script src="javascript/FileSaver.min.js"></script>
+	
+	<script type="text/javascript" src="javascript/go-iiif.js"></script>
+	
+	<link rel="stylesheet" type="text/css" href="css/leaflet.1.5.1.css" />  
+	<link rel="stylesheet" type="text/css" href="css/go-iiif.css" />
+    </head>
+    <body>
+	
+	<div id="container">
+	    <button id="image" title="this button will take a picture of whatever you see in the slippy map's viewport">📷</button>	
+	    <div id="map"></div>           
+	</div>
+	
+	<div id="controls">
+	    
+	    <form id="chooser">
+		<select id="images">
+		</select>
+	    </form>
+	</div>
+	
+	<div id="footer">
+	    <p><small><span class="hey-look">go-iiif</span> is a thing by <a href="http://www.aaronland.info/">aaron straup cope</a>.</small></p>
+	</div>
+	
+    </body>
 </html>
