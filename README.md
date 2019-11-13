@@ -19,7 +19,7 @@ _Note that the red borders on the tiles are deliberate and set using CSS._
 ### tiles-server
 
 ```
-go run cmd/tile-server/main.go -tiles-root /path/to/go-iiif-vips/docker/cache/ -www-root ./www/
+go run cmd/tiles-server/main.go -tiles-root /path/to/go-iiif-vips/docker/cache/ -www-root ./www/
 2019/10/29 12:46:06 listening on localhost:8080
 ```
 
