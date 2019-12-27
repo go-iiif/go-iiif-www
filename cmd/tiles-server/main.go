@@ -1,20 +1,27 @@
 package main
 
 import (
+	_ "github.com/aaronland/go-cloud-s3blob"
+)
+
+import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"gocloud.dev/blob"
+	_ "gocloud.dev/blob/fileblob"
+	"io"
 	"log"
 	"net/http"
 	"path/filepath"
-	"io"
-	"encoding/json"
-	"sync"
 	"sort"
 	"strings"
-	"gocloud.dev/blob"
-	_ "gocloud.dev/blob/fileblob"
+	"sync"
+	"time"
 )
+
+type LoadImagesFunc func(context.Context, *blob.Bucket) ([]string, error)
 
 func TilesHandler(bucket *blob.Bucket) (http.HandlerFunc, error) {
 
@@ -39,7 +46,7 @@ func TilesHandler(bucket *blob.Bucket) (http.HandlerFunc, error) {
 
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
-			return 
+			return
 		}
 
 		fh.Close()
@@ -49,79 +56,18 @@ func TilesHandler(bucket *blob.Bucket) (http.HandlerFunc, error) {
 	return http.HandlerFunc(fn), nil
 }
 
-func CatalogHandler(bucket *blob.Bucket) (http.HandlerFunc, error) {
+func CatalogHandler(bucket *blob.Bucket, images_func LoadImagesFunc) (http.HandlerFunc, error) {
 
-	mu := new(sync.RWMutex)
-	images := make([]string, 0)
-	
-	var list_images func(context.Context, *blob.Bucket, string) error
-
-	list_images = func(ctx context.Context, b *blob.Bucket, prefix string) error {
-		
-		iter := b.List(&blob.ListOptions{
-			Delimiter: "/",
-			Prefix:    prefix,
-		})
-		
-		for {
-			
-			select {
-			case <-ctx.Done():
-				return nil
-			default:
-				// pass
-			}
-			
-			obj, err := iter.Next(ctx)
-			
-			if err == io.EOF {
-				break
-			}
-			
-			if err != nil {
-				return err
-			}
-			
-			if obj.IsDir {
-				
-				err := list_images(ctx, b, obj.Key)
-				
-				if err != nil {
-					return err
-				}
-				
-				continue
-			}
-			
-			fname := filepath.Base(obj.Key)
-			
-			if fname != "info.json" {
-				return nil
-			}
-			
-			id := filepath.Dir(obj.Key)				
-			id = strings.TrimLeft(id, "/")
-			
-			mu.Lock()
-			defer mu.Unlock()
-			
-			images = append(images, id)
-			return nil
-		}
-		
-		return nil
-	}
-	
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()	
-		
-		err := list_images(ctx, bucket, "")
+		defer cancel()
+
+		images, err := images_func(ctx, bucket)
 
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
-			return 
+			return
 		}
 
 		sort.Strings(images)
@@ -130,13 +76,106 @@ func CatalogHandler(bucket *blob.Bucket) (http.HandlerFunc, error) {
 
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
-			return 
+			return
 		}
 
 		rsp.Write(enc)
 	}
-	
-	return http.HandlerFunc(fn), nil	
+
+	return http.HandlerFunc(fn), nil
+}
+
+func PreloadImages(ctx context.Context, bucket *blob.Bucket) (LoadImagesFunc, error) {
+
+	images, err := LoadImages(ctx, bucket)
+
+	if err != nil {
+		return nil, err
+	}
+
+	fn := func(ctx context.Context, bucket *blob.Bucket) ([]string, error) {
+		return images, nil
+	}
+
+	return fn, nil
+}
+
+func LoadImages(ctx context.Context, bucket *blob.Bucket) ([]string, error) {
+
+	mu := new(sync.RWMutex)
+	images := make([]string, 0)
+
+	var list_images func(context.Context, *blob.Bucket, string) error
+
+	list_images = func(ctx context.Context, b *blob.Bucket, prefix string) error {
+
+		iter := b.List(&blob.ListOptions{
+			Delimiter: "/",
+			Prefix:    prefix,
+		})
+
+		for {
+
+			select {
+			case <-ctx.Done():
+				return nil
+			default:
+				// pass
+			}
+
+			obj, err := iter.Next(ctx)
+
+			if err == io.EOF {
+				break
+			}
+
+			if err != nil {
+				return err
+			}
+
+			if obj.IsDir {
+
+				err := list_images(ctx, b, obj.Key)
+
+				if err != nil {
+					return err
+				}
+
+				continue
+			}
+
+			fname := filepath.Base(obj.Key)
+
+			if fname != "info.json" {
+				continue
+			}
+
+			id := filepath.Dir(obj.Key)
+			id = strings.TrimLeft(id, "/")
+
+			mu.Lock()
+			defer mu.Unlock()
+
+			images = append(images, id)
+			return nil
+		}
+
+		return nil
+	}
+
+	t1 := time.Now()
+
+	defer func() {
+		log.Printf("Time to index images: %v\n", time.Since(t1))
+	}()
+
+	err := list_images(ctx, bucket, "")
+
+	if err != nil {
+		return nil, err
+	}
+
+	return images, nil
 }
 
 func main() {
@@ -144,13 +183,15 @@ func main() {
 	host := flag.String("host", "localhost", "Hostname to listen on")
 	port := flag.Int("port", 8080, "Port to listen on")
 
+	preload := flag.Bool("preload", false, "...")
+
 	tiles_root := flag.String("tiles-root", "", "")
 	www_root := flag.String("www-root", "", "")
 
 	flag.Parse()
 
 	ctx := context.Background()
-	
+
 	www_path, err := filepath.Abs(*www_root)
 
 	if err != nil {
@@ -162,16 +203,31 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	defer tiles_bucket.Close()
-	
+
 	tiles_handler, err := TilesHandler(tiles_bucket)
 
 	if err != nil {
 		log.Fatal(err)
 	}
-	
-	catalog_handler, err := CatalogHandler(tiles_bucket)
+
+	var images_func LoadImagesFunc
+
+	switch *preload {
+	case true:
+		fn, err := PreloadImages(ctx, tiles_bucket)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		images_func = fn
+	default:
+		images_func = LoadImages
+	}
+
+	catalog_handler, err := CatalogHandler(tiles_bucket, images_func)
 
 	if err != nil {
 		log.Fatal(err)
@@ -179,10 +235,10 @@ func main() {
 
 	www_dir := http.Dir(www_path)
 	www_handler := http.FileServer(www_dir)
-	
+
 	mux := http.NewServeMux()
 
-	mux.Handle("/catalog/", catalog_handler)	
+	mux.Handle("/catalog/", catalog_handler)
 	mux.Handle("/tiles/", tiles_handler)
 	mux.Handle("/", www_handler)
 
