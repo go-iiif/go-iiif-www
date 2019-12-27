@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"sync"
 	"sort"
+	"strings"
 )
 
 func CatalogHandler(tile_root string) (http.HandlerFunc, error) {
@@ -34,12 +35,14 @@ func CatalogHandler(tile_root string) (http.HandlerFunc, error) {
 			}
 
 			root := filepath.Dir(path)
-			image := filepath.Base(root)
+
+			id := strings.Replace(root, tile_root, "", 1)
+			id = strings.TrimLeft(id, "/")
 
 			mu.Lock()
 			defer mu.Unlock()
 
-			images = append(images, image)
+			images = append(images, id)
 			return nil
 		}
 		
