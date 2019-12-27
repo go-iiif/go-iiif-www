@@ -1,53 +1,123 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"path/filepath"
-	"os"
-	"github.com/whosonfirst/go-whosonfirst-crawl"
+	"io"
 	"encoding/json"
 	"sync"
 	"sort"
 	"strings"
+	"gocloud.dev/blob"
+	_ "gocloud.dev/blob/fileblob"
 )
 
-func CatalogHandler(tile_root string) (http.HandlerFunc, error) {
+func TilesHandler(bucket *blob.Bucket) (http.HandlerFunc, error) {
 
-	mu := new(sync.RWMutex)
-	
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
-		images := make([]string, 0)
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+
+		path := req.URL.Path
+		path = strings.TrimLeft(path, "/tiles")
+
+		fh, err := bucket.NewReader(ctx, path, nil)
+
+		if err != nil {
+			http.Error(rsp, err.Error(), http.StatusNotFound)
+			return
+		}
+
+		defer fh.Close()
+
+		_, err = io.Copy(rsp, fh)
+
+		if err != nil {
+			http.Error(rsp, err.Error(), http.StatusInternalServerError)
+			return 
+		}
+
+		fh.Close()
+		return
+	}
+
+	return http.HandlerFunc(fn), nil
+}
+
+func CatalogHandler(bucket *blob.Bucket) (http.HandlerFunc, error) {
+
+	mu := new(sync.RWMutex)
+	images := make([]string, 0)
+	
+	var list_images func(context.Context, *blob.Bucket, string) error
+
+	list_images = func(ctx context.Context, b *blob.Bucket, prefix string) error {
 		
-		cb := func(path string, info os.FileInfo) error {
+		iter := b.List(&blob.ListOptions{
+			Delimiter: "/",
+			Prefix:    prefix,
+		})
 		
-			if info.IsDir() {
+		for {
+			
+			select {
+			case <-ctx.Done():
 				return nil
+			default:
+				// pass
 			}
 			
-			fname := filepath.Base(path)
-
+			obj, err := iter.Next(ctx)
+			
+			if err == io.EOF {
+				break
+			}
+			
+			if err != nil {
+				return err
+			}
+			
+			if obj.IsDir {
+				
+				err := list_images(ctx, b, obj.Key)
+				
+				if err != nil {
+					return err
+				}
+				
+				continue
+			}
+			
+			fname := filepath.Base(obj.Key)
+			
 			if fname != "info.json" {
 				return nil
 			}
-
-			root := filepath.Dir(path)
-
-			id := strings.Replace(root, tile_root, "", 1)
+			
+			id := filepath.Dir(obj.Key)				
 			id = strings.TrimLeft(id, "/")
-
+			
 			mu.Lock()
 			defer mu.Unlock()
-
+			
 			images = append(images, id)
 			return nil
 		}
 		
-		cr := crawl.NewCrawler(tile_root)
-		err := cr.Crawl(cb)
+		return nil
+	}
+	
+	fn := func(rsp http.ResponseWriter, req *http.Request) {
+
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()	
+		
+		err := list_images(ctx, bucket, "")
 
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
@@ -65,7 +135,7 @@ func CatalogHandler(tile_root string) (http.HandlerFunc, error) {
 
 		rsp.Write(enc)
 	}
-
+	
 	return http.HandlerFunc(fn), nil	
 }
 
@@ -79,30 +149,36 @@ func main() {
 
 	flag.Parse()
 
-	tiles_path, err := filepath.Abs(*tiles_root)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	ctx := context.Background()
+	
 	www_path, err := filepath.Abs(*www_root)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tiles_dir := http.Dir(tiles_path)
-	tiles_handler := http.FileServer(tiles_dir)
-	tiles_handler = http.StripPrefix("/tiles/", tiles_handler)
-
-	www_dir := http.Dir(www_path)
-	www_handler := http.FileServer(www_dir)
-
-	catalog_handler, err := CatalogHandler(tiles_path)
+	tiles_bucket, err := blob.OpenBucket(ctx, *tiles_root)
 
 	if err != nil {
 		log.Fatal(err)
 	}
+	
+	defer tiles_bucket.Close()
+	
+	tiles_handler, err := TilesHandler(tiles_bucket)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	catalog_handler, err := CatalogHandler(tiles_bucket)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	www_dir := http.Dir(www_path)
+	www_handler := http.FileServer(www_dir)
 	
 	mux := http.NewServeMux()
 
