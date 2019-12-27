@@ -23,6 +23,8 @@ go run cmd/tiles-server/main.go -tiles-root /path/to/go-iiif-vips/docker/cache/ 
 2019/10/29 12:46:06 listening on localhost:8080
 ```
 
+This uses a mix of `http.Dir` and Go Cloud `blob.Bucket` sources. Wrangling everything to assume the latter is on the list.
+
 ## See also
 
 * https://github.com/go-iiif/go-iiif
