@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "github.com/aaronland/go-cloud-s3blob"
+	// "github.com/aaronland/go-cloud-s3blob"
 )
 
 import (
@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-type LoadImagesFunc func(context.Context, *blob.Bucket) ([]string, error)
+type CatalogImagesFunc func(context.Context, *blob.Bucket) ([]string, error)
 
 func TilesHandler(bucket *blob.Bucket) (http.HandlerFunc, error) {
 
@@ -56,7 +56,7 @@ func TilesHandler(bucket *blob.Bucket) (http.HandlerFunc, error) {
 	return http.HandlerFunc(fn), nil
 }
 
-func CatalogHandler(bucket *blob.Bucket, images_func LoadImagesFunc) (http.HandlerFunc, error) {
+func CatalogHandler(bucket *blob.Bucket, images_func CatalogImagesFunc) (http.HandlerFunc, error) {
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
@@ -85,9 +85,9 @@ func CatalogHandler(bucket *blob.Bucket, images_func LoadImagesFunc) (http.Handl
 	return http.HandlerFunc(fn), nil
 }
 
-func PreloadImages(ctx context.Context, bucket *blob.Bucket) (LoadImagesFunc, error) {
+func PreloadImagesCatalog(ctx context.Context, bucket *blob.Bucket) (CatalogImagesFunc, error) {
 
-	images, err := LoadImages(ctx, bucket)
+	images, err := CatalogImages(ctx, bucket)
 
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func PreloadImages(ctx context.Context, bucket *blob.Bucket) (LoadImagesFunc, er
 	return fn, nil
 }
 
-func LoadImages(ctx context.Context, bucket *blob.Bucket) ([]string, error) {
+func CatalogImages(ctx context.Context, bucket *blob.Bucket) ([]string, error) {
 
 	mu := new(sync.RWMutex)
 	images := make([]string, 0)
@@ -212,11 +212,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var images_func LoadImagesFunc
+	var images_func CatalogImagesFunc
 
 	switch *preload {
 	case true:
-		fn, err := PreloadImages(ctx, tiles_bucket)
+		fn, err := PreloadImagesCatalog(ctx, tiles_bucket)
 
 		if err != nil {
 			log.Fatal(err)
@@ -224,7 +224,7 @@ func main() {
 
 		images_func = fn
 	default:
-		images_func = LoadImages
+		images_func = CatalogImages
 	}
 
 	catalog_handler, err := CatalogHandler(tiles_bucket, images_func)
